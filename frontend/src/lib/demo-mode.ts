@@ -113,20 +113,47 @@ export const mockApi = {
 
   generateReport: (data: any) => {
     return new Promise((resolve) => {
+      // 模拟真实的AI生成过程，包含多个阶段
+      const stages = [
+        '正在分析项目基础信息...',
+        '正在进行市场调研分析...',
+        '正在分析竞品情况...',
+        '正在进行财务建模...',
+        '正在生成报告内容...',
+        '正在优化报告格式...'
+      ];
+
+      let currentStage = 0;
+      const stageInterval = setInterval(() => {
+        currentStage++;
+        if (currentStage >= stages.length) {
+          clearInterval(stageInterval);
+        }
+      }, 800);
+
       setTimeout(() => {
+        clearInterval(stageInterval);
         resolve({
           success: true,
           data: {
             id: 'new-report-' + Date.now(),
             status: 'completed',
             content: {
-              executive_summary: '这是一个演示报告的执行摘要...',
-              market_analysis: '市场分析显示该区域具有良好的发展潜力...',
-              financial_projections: '财务预测表明项目具有较好的投资回报率...'
+              executive_summary: '这是一个演示报告的执行摘要，展示AI生成的专业分析内容...',
+              market_analysis: '市场分析显示该区域具有良好的发展潜力，供需关系相对平衡...',
+              financial_projections: '财务预测表明项目具有较好的投资回报率，预计IRR达15-18%...',
+              risk_assessment: '风险评估显示项目整体风险可控，主要风险点已识别...',
+              recommendations: '建议按计划推进项目开发，重点关注产品定位和营销策略...'
+            },
+            metadata: {
+              generated_at: new Date().toISOString(),
+              ai_model: 'Qwen-Max (Demo Mode)',
+              processing_time: '5.2秒',
+              confidence_score: 0.92
             }
           }
         });
-      }, 3000); // 模拟3秒生成时间
+      }, 5000); // 模拟5秒生成时间
     });
   }
 };
