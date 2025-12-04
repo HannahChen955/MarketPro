@@ -1,0 +1,384 @@
+// Prisma Schema for MarketPro AI
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表（简化权限模型）
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String   // 添加密码字段
+  role      String   @default("user") // user, admin
+  avatarUrl String?  @map("avatar_url")
+  lastLogin DateTime? @map("last_login")
+
+  // 用户偏好配置和元数据
+  preferences Json @default("{}")
+  metadata   Json @default("{}")  // 存储成本限制等信息
+
+  // 关联关系
+  projects        Project[]
+  tasks           Task[]
+  files           File[]
+  auditLogs       AuditLog[]
+  aiUsageStats    AIUsageStats[]
+  aiUsageLogs     AIUsageLog[]    // 新增：AI使用日志
+  securityLogs    SecurityLog[]   // 新增：安全检查日志
+  taskSessions    UserTaskSession[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// 报告类型定义
+model ReportType {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  icon        String
+  status      String  @default("active") // active, placeholder, draft
+  category    String
+
+  // 配置信息（输入字段、工作流、模板等）
+  configuration Json?
+
+  // 版本控制
+  version   Int     @default(1)
+  createdBy String? @map("created_by")
+
+  // 关联关系
+  projects         Project[]
+  generatedReports GeneratedReport[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("report_types")
+}
+
+// 设计系统
+model DesignSystem {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
+  // 设计配置（颜色、字体、布局等）
+  config Json
+
+  // 版本控制
+  version   Int     @default(1)
+  isDefault Boolean @default(false) @map("is_default")
+  parentId  String? @map("parent_id") // 用于版本链
+  createdBy String? @map("created_by")
+
+  // 关联关系
+  parent   DesignSystem?  @relation("DesignSystemVersions", fields: [parentId], references: [id])
+  children DesignSystem[] @relation("DesignSystemVersions")
+  projects Project[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("design_systems")
+}
+
+// 项目实例
+model Project {
+  id             String  @id @default(uuid())
+  name           String
+  reportTypeId   String  @map("report_type_id")
+  designSystemId String? @map("design_system_id")
+
+  // 用户输入的数据
+  inputData Json @map("input_data")
+
+  // 项目状态
+  status      String @default("draft") // draft, processing, completed, failed
+  currentStep String @default("info_collection") @map("current_step")
+  progress    Int    @default(0) // 0-100
+
+  userId String @map("user_id")
+
+  // 关联关系
+  reportType       ReportType        @relation(fields: [reportTypeId], references: [id])
+  designSystem     DesignSystem?     @relation(fields: [designSystemId], references: [id])
+  user             User              @relation(fields: [userId], references: [id])
+  tasks            Task[]
+  generatedReports GeneratedReport[]
+  files            File[]
+  downloadHistory  DownloadHistory[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("projects")
+}
+
+// 任务表（加强监控功能）
+model Task {
+  id        String @id @default(uuid())
+  type      String // ai_generation, ppt_export, analysis等
+
+  // 详细状态跟踪
+  stage              String    @default("submitted") // 详细阶段状态
+  status             String    @default("pending") // pending, running, completed, failed
+  progress           Int       @default(0)
+  stageStartedAt     DateTime  @default(now()) @map("stage_started_at")
+  lastHeartbeat      DateTime  @default(now()) @map("last_heartbeat")
+  estimatedDuration  Int?      @map("estimated_duration") // 当前阶段预计耗时（秒）
+  message            String?   // 给用户看的状态描述
+
+  // 数据
+  inputData  Json  @map("input_data")
+  resultData Json? @map("result_data")
+
+  // 错误信息
+  errorMessage String? @map("error_message")
+
+  // 关联
+  projectId String @map("project_id")
+  userId    String @map("user_id")
+
+  project Project @relation(fields: [projectId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  // 心跳日志
+  heartbeats TaskHeartbeat[]
+  sessions   UserTaskSession[]
+
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("tasks")
+}
+
+// 任务心跳日志
+model TaskHeartbeat {
+  id      String @id @default(uuid())
+  taskId  String @map("task_id")
+  stage   String
+  message String?
+  details Json?
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("task_heartbeats")
+}
+
+// 用户任务会话（跟踪用户查看的任务）
+model UserTaskSession {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  taskId           String    @map("task_id")
+  lastCheckedAt    DateTime  @default(now()) @map("last_checked_at")
+  notificationSent Boolean   @default(false) @map("notification_sent")
+
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+  @@map("user_task_sessions")
+}
+
+// 生成结果
+model GeneratedReport {
+  id         String  @id @default(uuid())
+  projectId  String  @map("project_id")
+  reportTypeId String @map("report_type_id")
+  version    Int
+
+  // 报告内容
+  title    String
+  content  Json
+  metadata Json? // 生成时间、AI模型等
+  status   String @default("completed") // generating, completed, failed
+
+  // 文件信息
+  filePath     String  @map("file_path")
+  fileSize     Int     @default(0) @map("file_size")
+  designSystem String? @map("design_system")
+  fileUrls     Json?   @map("file_urls") // 生成的文件下载链接
+
+  isSelected Boolean @default(false) @map("is_selected")
+
+  project     Project    @relation(fields: [projectId], references: [id])
+  reportType  ReportType @relation(fields: [reportTypeId], references: [id])
+
+  // 关联关系
+  downloadHistory DownloadHistory[]
+  shares          ReportShare[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("generated_reports")
+}
+
+// 文件管理
+model File {
+  id           String @id @default(uuid())
+  originalName String @map("original_name")
+  fileType     String @map("file_type")
+  fileSize     BigInt @map("file_size")
+
+  // 存储信息
+  storagePath   String    @map("storage_path")
+  downloadUrl   String?   @map("download_url")
+  urlExpiresAt  DateTime? @map("url_expires_at")
+
+  // 关联
+  projectId String? @map("project_id")
+  userId    String  @map("user_id")
+
+  project Project? @relation(fields: [projectId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("files")
+}
+
+// 审计日志
+model AuditLog {
+  id           String  @id @default(uuid())
+  userId       String? @map("user_id")
+  action       String // create_project, generate_report, download_file等
+  resourceType String? @map("resource_type")
+  resourceId   String? @map("resource_id")
+
+  details   Json?
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
+// AI使用统计
+model AIUsageStats {
+  id         String  @id @default(uuid())
+  userId     String? @map("user_id")
+  modelName  String  @map("model_name")
+  tokensUsed Int     @map("tokens_used")
+  costCents  Int?    @map("cost_cents") // 成本（分为单位）
+
+  taskType  String? @map("task_type")
+  projectId String? @map("project_id")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("ai_usage_stats")
+}
+
+// AI使用日志（详细记录）
+model AIUsageLog {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  model            String
+  requestType      String   @map("request_type") // generation, analysis, chat
+  promptTokens     Int      @map("prompt_tokens")
+  completionTokens Int      @map("completion_tokens")
+  totalTokens      Int      @map("total_tokens")
+  estimatedCost    Float    @map("estimated_cost")
+  successful       Boolean  @default(true)
+
+  // 请求上下文
+  projectId String? @map("project_id")
+  taskId    String? @map("task_id")
+
+  // 元数据
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("ai_usage_logs")
+}
+
+// 安全检查日志
+model SecurityLog {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  contentHash String   @map("content_hash")
+  issues      String? // 检测到的问题列表
+  riskLevel   String   @map("risk_level") // low, medium, high, critical
+  blocked     Boolean  @default(false) // 是否被阻止
+
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("security_logs")
+}
+
+// 组件库（用于动态配置）
+model ComponentLibrary {
+  id          String  @id @default(uuid())
+  name        String
+  type        String // layout, field, chart, prompt
+  category    String
+
+  // 组件配置和模板
+  config   Json
+  template Json
+
+  isSystem Boolean @default(false) @map("is_system")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("component_library")
+}
+
+// 下载历史记录
+model DownloadHistory {
+  id           String @id @default(uuid())
+  reportId     String? @map("report_id")
+  projectId    String @map("project_id")
+  downloadType String @map("download_type") // single, batch
+  fileSize     Int @map("file_size")
+  reportCount  Int? @map("report_count") // 批量下载时的报告数量
+
+  // 元数据
+  metadata Json?
+
+  // 关联关系
+  report  GeneratedReport? @relation(fields: [reportId], references: [id])
+  project Project         @relation(fields: [projectId], references: [id])
+
+  downloadedAt DateTime @default(now()) @map("downloaded_at")
+
+  @@map("download_history")
+}
+
+// 报告分享记录
+model ReportShare {
+  id            String    @id @default(uuid())
+  reportId      String    @map("report_id")
+  expiryDate    DateTime  @map("expiry_date")
+  password      String?
+  allowDownload Boolean   @default(true) @map("allow_download")
+  accessCount   Int       @default(0) @map("access_count")
+
+  // 关联关系
+  report GeneratedReport @relation(fields: [reportId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("report_shares")
+}
