@@ -16,14 +16,15 @@ const nextConfig = {
       }
     ],
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:9527'}/api/:path*`,
-      },
-    ];
-  },
+  // 暂时禁用API重写，用于Vercel演示
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/:path*',
+  //       destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:9527'}/api/:path*`,
+  //     },
+  //   ];
+  // },
 };
 
 module.exports = nextConfig;
