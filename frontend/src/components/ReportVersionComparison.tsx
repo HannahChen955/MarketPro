@@ -23,7 +23,7 @@ interface ReportVersionComparisonProps {
 
 export default function ReportVersionComparison({ reportId, isOpen, onClose }: ReportVersionComparisonProps) {
   const [versions, setVersions] = useState<ReportVersion[]>([]);
-  const [selectedVersions, setSelectedVersions] = useState<[string, string] | []>([]);
+  const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [comparisonResult, setComparisonResult] = useState<any>(null);
   const [isComparing, setIsComparing] = useState(false);
