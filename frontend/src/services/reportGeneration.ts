@@ -12,6 +12,7 @@ export interface ReportGenerationRequest {
 export interface ReportSection {
   id: string;
   title: string;
+  subtitle?: string;
   content: string;
   charts?: ChartData[];
   tables?: TableData[];
