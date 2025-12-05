@@ -783,3 +783,5 @@ export function AIAssistantTrigger({
     </motion.button>
   );
 }
+
+export default AIAssistant;

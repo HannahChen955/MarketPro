@@ -632,3 +632,5 @@ export function ReportPreview({
     </Card>
   );
 }
+
+export default ReportPreview;
