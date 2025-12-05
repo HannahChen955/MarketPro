@@ -429,6 +429,8 @@ export function ProgressTracker({
   );
 }
 
+export default ProgressTracker;
+
 // 预设的进度阶段配置
 export const defaultProgressStages: ProgressStage[] = [
   {

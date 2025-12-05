@@ -513,3 +513,5 @@ export function DataCollectionForm({
     </form>
   );
 }
+
+export default DataCollectionForm;

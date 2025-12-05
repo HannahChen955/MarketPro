@@ -328,3 +328,5 @@ export function StepNavigation({
     </div>
   );
 }
+
+export default WorkflowStepper;

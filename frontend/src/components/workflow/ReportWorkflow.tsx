@@ -754,3 +754,5 @@ export function ReportWorkflow({
     </div>
   );
 }
+
+export default ReportWorkflow;
