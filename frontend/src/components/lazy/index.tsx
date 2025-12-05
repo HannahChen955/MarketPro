@@ -62,56 +62,59 @@ export const LazyReportPreview = createLazyComponent(
   </div>
 );
 
+// 注意：以下组件暂时注释掉，因为这些组件尚未实现
+// 如果需要使用这些组件，请先创建对应的组件文件
+
 // 懒加载图表组件（如果有）
-export const LazyChart = createLazyComponent(
-  () => import('@/components/ui/Chart'), // 假设的图表组件
-  <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-    <span className="text-gray-500">图表加载中...</span>
-  </div>
-);
+// export const LazyChart = createLazyComponent(
+//   () => import('@/components/ui/Chart'), // 需要先实现该组件
+//   <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+//     <span className="text-gray-500">图表加载中...</span>
+//   </div>
+// );
 
 // 懒加载大型表格组件
-export const LazyDataTable = createLazyComponent(
-  () => import('@/components/ui/DataTable'), // 假设的数据表格组件
-  <div className="h-32 bg-gray-50 rounded border flex items-center justify-center">
-    <span className="text-gray-500">表格加载中...</span>
-  </div>
-);
+// export const LazyDataTable = createLazyComponent(
+//   () => import('@/components/ui/DataTable'), // 需要先实现该组件
+//   <div className="h-32 bg-gray-50 rounded border flex items-center justify-center">
+//     <span className="text-gray-500">表格加载中...</span>
+//   </div>
+// );
 
 // 懒加载富文本编辑器组件
-export const LazyRichEditor = createLazyComponent(
-  () => import('@/components/ui/RichEditor'), // 假设的富文本编辑器
-  <div className="h-48 bg-gray-50 rounded border flex items-center justify-center">
-    <span className="text-gray-500">编辑器加载中...</span>
-  </div>
-);
+// export const LazyRichEditor = createLazyComponent(
+//   () => import('@/components/ui/RichEditor'), // 需要先实现该组件
+//   <div className="h-48 bg-gray-50 rounded border flex items-center justify-center">
+//     <span className="text-gray-500">编辑器加载中...</span>
+//   </div>
+// );
 
 // 懒加载文件上传组件
-export const LazyFileUpload = createLazyComponent(
-  () => import('@/components/ui/FileUpload'), // 假设的文件上传组件
-  <div className="h-24 bg-gray-50 rounded border-2 border-dashed border-gray-300 flex items-center justify-center">
-    <span className="text-gray-500">上传组件加载中...</span>
-  </div>
-);
+// export const LazyFileUpload = createLazyComponent(
+//   () => import('@/components/ui/FileUpload'), // 需要先实现该组件
+//   <div className="h-24 bg-gray-50 rounded border-2 border-dashed border-gray-300 flex items-center justify-center">
+//     <span className="text-gray-500">上传组件加载中...</span>
+//   </div>
+// );
 
 // 懒加载设置页面组件
-export const LazySettingsPage = createLazyComponent(
-  () => import('@/app/settings/page'), // 假设的设置页面
-  <LoadingSpinner
-    variant="page"
-    message="正在加载设置页面..."
-    stage="loading"
-  />
-);
+// export const LazySettingsPage = createLazyComponent(
+//   () => import('@/app/settings/page'), // 需要先实现该页面
+//   <LoadingSpinner
+//     variant="page"
+//     message="正在加载设置页面..."
+//     stage="loading"
+//   />
+// );
 
 // 懒加载报告列表页面
-export const LazyReportsListPage = createLazyComponent(
-  () => import('@/app/reports/page'), // 假设的报告列表页面
-  <LoadingSpinner
-    variant="page"
-    message="正在加载报告列表..."
-    stage="loading"
-  />
-);
+// export const LazyReportsListPage = createLazyComponent(
+//   () => import('@/app/reports/page'), // 需要先实现该页面
+//   <LoadingSpinner
+//     variant="page"
+//     message="正在加载报告列表..."
+//     stage="loading"
+//   />
+// );
 
 // 所有组件已在上面通过 export const 导出，无需重复导出
