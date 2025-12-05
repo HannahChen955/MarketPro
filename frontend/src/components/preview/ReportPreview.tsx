@@ -180,8 +180,8 @@ export function ReportPreview({
         id: 'financial',
         title: '财务分析',
         icon: <DollarSign className="w-4 h-4" />,
-        status: formData.totalBudget ? 'completed' : 'pending',
-        progress: formData.totalBudget ? 90 : 0,
+        status: formData.budget ? 'completed' : 'pending',
+        progress: formData.budget ? 90 : 0,
         estimatedPages: 3,
         content: (
           <div className="space-y-4">
@@ -194,19 +194,19 @@ export function ReportPreview({
                 <div>
                   <p className="text-sm text-gray-600">总预算</p>
                   <p className="text-lg font-bold text-green-600">
-                    {formData.totalBudget ? `¥${formData.totalBudget}万` : '待填写'}
+                    {formData.budget ? `¥${formData.budget}万` : '待填写'}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">营销预算</p>
                   <p className="text-lg font-bold text-blue-600">
-                    {formData.marketingBudget ? `¥${formData.marketingBudget}万` : '待填写'}
+                    {formData.targetPrice ? `¥${formData.targetPrice}万` : '待填写'}
                   </p>
                 </div>
               </div>
             </Card>
 
-            {formData.totalBudget && (
+            {formData.budget && (
               <Card className="p-4">
                 <h3 className="font-semibold mb-2">预算分配建议</h3>
                 <div className="space-y-2">
@@ -314,12 +314,12 @@ export function ReportPreview({
       formData.projectName,
       formData.projectType,
       formData.location,
-      formData.totalBudget,
-      formData.marketingBudget,
+      formData.budget,
+      formData.targetPrice,
       formData.analysisDepth,
       formData.reportFormat,
       formData.targetAudience?.length,
-      formData.competitorAnalysis,
+      formData.includeCompetitors,
       formData.includeCharts
     ].filter(Boolean).length;
 
