@@ -16,6 +16,8 @@ export interface ReportSection {
   subtitle?: string;
   icon?: React.ReactNode;
   content: string;
+  data?: any[];
+  keyPoints?: string[];
   charts?: ChartData[];
   tables?: TableData[];
   insights?: string[];
