@@ -7,7 +7,6 @@ import { Project, ProjectQueryParams, ProjectStatus, PhaseId } from '@/types/pro
 import { REPORT_STATS } from '@/config/reportDefinitions';
 import ProjectCreateModal, { ProjectFormData } from '@/components/ProjectCreateModal';
 import { AIAssistant, AIAssistantTrigger } from '@/components/chat/AIAssistant';
-import AIAssistantDebug from '@/debug/AIAssistantDebug';
 
 // Mock数据 - 后续替换为真实API
 const mockProjects: Project[] = [
@@ -489,12 +488,6 @@ export default function ProjectsListPage() {
         onSubmit={handleCreateProject}
       />
 
-      {/* AI助手调试工具 (仅在开发环境显示) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div id="ai-debug-panel">
-          <AIAssistantDebug />
-        </div>
-      )}
 
       {/* AI助手触发按钮 */}
       <AIAssistantTrigger

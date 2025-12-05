@@ -28,6 +28,7 @@ interface PhaseStatusManagerProps {
   phases: PhaseInfo[];
   onStatusChange: (phaseId: number, newStatus: PhaseStatus) => void;
   onDateChange?: (phaseId: number, startDate?: string, endDate?: string) => void;
+  onEstimatedDaysChange?: (phaseId: number, estimatedDays: number) => void;
 }
 
 interface StatusConfig {
@@ -74,8 +75,9 @@ const statusConfigs: StatusConfig[] = [
   }
 ];
 
-export function PhaseStatusManager({ phases, onStatusChange, onDateChange }: PhaseStatusManagerProps) {
+export function PhaseStatusManager({ phases, onStatusChange, onDateChange, onEstimatedDaysChange }: PhaseStatusManagerProps) {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [editingField, setEditingField] = useState<{ phaseId: number; field: string } | null>(null);
 
   const getStatusConfig = (status: PhaseStatus): StatusConfig => {
     return statusConfigs.find(config => config.label === status) || statusConfigs[0];
@@ -86,13 +88,34 @@ export function PhaseStatusManager({ phases, onStatusChange, onDateChange }: Pha
     setOpenDropdown(null);
   };
 
+  const handleDateChange = (phaseId: number, field: 'startDate' | 'endDate', value: string) => {
+    const phase = phases.find(p => p.id === phaseId);
+    if (phase && onDateChange) {
+      const newStartDate = field === 'startDate' ? value : phase.startDate;
+      const newEndDate = field === 'endDate' ? value : phase.endDate;
+      onDateChange(phaseId, newStartDate, newEndDate);
+    }
+    setEditingField(null);
+  };
+
+  const handleEstimatedDaysChange = (phaseId: number, value: number) => {
+    if (onEstimatedDaysChange) {
+      onEstimatedDaysChange(phaseId, value);
+    }
+    setEditingField(null);
+  };
+
+  const isEditing = (phaseId: number, field: string) => {
+    return editingField?.phaseId === phaseId && editingField?.field === field;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold text-gray-900">项目阶段管理</h3>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <Calendar className="w-4 h-4" />
-          <span>点击状态可编辑</span>
+          <span>点击状态、日期、天数可编辑</span>
         </div>
       </div>
 
@@ -165,26 +188,96 @@ export function PhaseStatusManager({ phases, onStatusChange, onDateChange }: Pha
                 </div>
               </div>
 
-              {/* 时间信息 */}
+              {/* 时间信息 - 可编辑 */}
               <div className="ml-11 flex items-center gap-6 text-sm text-gray-500">
+                {/* 预计天数 - 可编辑 */}
                 <div className="flex items-center gap-2">
                   <Timer className="w-4 h-4" />
-                  <span>预计 {phase.estimatedDays || 7} 天</span>
+                  <span>预计</span>
+                  {isEditing(phase.id, 'estimatedDays') ? (
+                    <input
+                      type="number"
+                      min="1"
+                      defaultValue={phase.estimatedDays || 7}
+                      onBlur={(e) => handleEstimatedDaysChange(phase.id, parseInt(e.target.value) || 7)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleEstimatedDaysChange(phase.id, parseInt((e.target as HTMLInputElement).value) || 7);
+                        } else if (e.key === 'Escape') {
+                          setEditingField(null);
+                        }
+                      }}
+                      className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      onClick={() => setEditingField({ phaseId: phase.id, field: 'estimatedDays' })}
+                      className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+                    >
+                      {phase.estimatedDays || 7}
+                    </span>
+                  )}
+                  <span>天</span>
                 </div>
 
-                {phase.startDate && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>开始: {phase.startDate}</span>
-                  </div>
-                )}
+                {/* 开始时间 - 可编辑 */}
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  <span>开始:</span>
+                  {isEditing(phase.id, 'startDate') ? (
+                    <input
+                      type="date"
+                      defaultValue={phase.startDate || ''}
+                      onBlur={(e) => handleDateChange(phase.id, 'startDate', e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleDateChange(phase.id, 'startDate', (e.target as HTMLInputElement).value);
+                        } else if (e.key === 'Escape') {
+                          setEditingField(null);
+                        }
+                      }}
+                      className="px-2 py-1 border border-gray-300 rounded text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      onClick={() => setEditingField({ phaseId: phase.id, field: 'startDate' })}
+                      className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+                    >
+                      {phase.startDate || '未设置'}
+                    </span>
+                  )}
+                </div>
 
-                {phase.endDate && (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>结束: {phase.endDate}</span>
-                  </div>
-                )}
+                {/* 结束时间 - 可编辑 */}
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>结束:</span>
+                  {isEditing(phase.id, 'endDate') ? (
+                    <input
+                      type="date"
+                      defaultValue={phase.endDate || ''}
+                      onBlur={(e) => handleDateChange(phase.id, 'endDate', e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleDateChange(phase.id, 'endDate', (e.target as HTMLInputElement).value);
+                        } else if (e.key === 'Escape') {
+                          setEditingField(null);
+                        }
+                      }}
+                      className="px-2 py-1 border border-gray-300 rounded text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      onClick={() => setEditingField({ phaseId: phase.id, field: 'endDate' })}
+                      className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+                    >
+                      {phase.endDate || '未设置'}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* 状态指示器 */}

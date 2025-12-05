@@ -3,6 +3,7 @@ import { useState, useCallback, useRef } from 'react';
 import { Project } from '@/types/project';
 import { ReportDefinition, Report, GenerationProgress } from '@/types/report';
 import { aiReportService, AIReportOptions, reportProgressManager } from '@/services/aiReportService';
+import { activityService } from '@/services/activityService';
 
 export interface ReportGenerationState {
   isGenerating: boolean;
@@ -161,6 +162,9 @@ export function useReportGeneration(): UseReportGenerationReturn {
         setState(prev => ({ ...prev, isGenerating: false, progress: null }));
         return;
       }
+
+      // 记录报告生成活动
+      activityService.recordReportGeneration(project.id, reportDefinitionId, generatedReport.title);
 
       setState(prev => ({
         ...prev,

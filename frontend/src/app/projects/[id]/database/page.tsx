@@ -11,6 +11,7 @@ import StatusIndicator, { SaveStatusBar, FieldError } from '@/components/StatusI
 import DataQualityPanel from '@/components/DataQualityPanel';
 import DataImportExport from '@/components/DataImportExport';
 import { AIAssistant, AIAssistantTrigger } from '@/components/chat/AIAssistant';
+import { activityService } from '@/services/activityService';
 
 // Mock数据 - 后续替换为真实API
 const mockProject: Project = {
@@ -119,15 +120,42 @@ const mockProject: Project = {
 const ProjectBasicInfoSection = ({ project }: { project: Project }) => {
   const [editedProject, setEditedProject] = useState(project);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isEditing, setIsEditing] = useState(false);
+
+  // 从localStorage加载已保存的数据
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedProject = localStorage.getItem(`project_basic_${project.id}`);
+        if (savedProject) {
+          setEditedProject(JSON.parse(savedProject));
+        }
+      } catch (error) {
+        console.warn('无法读取保存的项目数据:', error);
+      }
+    }
+  }, [project.id]);
 
   // Auto-save configuration
   const [autoSaveState, { forceSave, clearError }] = useAutoSave(editedProject, {
     delay: 2000, // 2秒延迟保存
     onSave: async (data: Project) => {
-      // Mock保存API调用 - 后续替换为真实API
+      // 保存到localStorage
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(`project_basic_${project.id}`, JSON.stringify(data));
+          console.log('保存项目基础信息到本地存储:', data);
+
+          // 记录活动
+          activityService.recordDataUpdate(project.id, '项目基础信息');
+        } catch (error) {
+          console.warn('无法保存项目数据:', error);
+          throw error;
+        }
+      }
+      // Mock API调用 - 后续替换为真实API
       await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟网络延迟
       console.log('保存项目基础信息:', data);
-      // 这里可以调用API保存数据
     },
     validateData: (data: Project) => {
       const validation = validateProjectBasicInfo(data);
@@ -142,6 +170,16 @@ const ProjectBasicInfoSection = ({ project }: { project: Project }) => {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900">项目基础信息</h2>
         <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              isEditing
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+            }`}
+          >
+            {isEditing ? '📝 编辑中' : '✏️ 开始编辑'}
+          </button>
           <StatusIndicator
             isSaving={autoSaveState.isSaving}
             lastSaved={autoSaveState.lastSaved}
@@ -187,18 +225,22 @@ const ProjectBasicInfoSection = ({ project }: { project: Project }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">所在区域</label>
-              {false ? (
+              {isEditing ? (
                 <input
                   type="text"
-                  value={editedBasicInfo.location?.district || ''}
-                  onChange={(e) => setEditedBasicInfo(prev => ({
+                  value={editedProject.basicInfo?.location?.district || ''}
+                  onChange={(e) => setEditedProject(prev => ({
                     ...prev,
-                    location: { ...prev.location, district: e.target.value }
+                    basicInfo: {
+                      ...prev.basicInfo,
+                      location: { ...prev.basicInfo?.location, district: e.target.value }
+                    }
                   }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="请输入所在区域"
                 />
               ) : (
-                <p className="text-gray-900">{project.basicInfo?.location?.district || '未填写'}</p>
+                <p className="text-gray-900">{editedProject.basicInfo?.location?.district || '未填写'}</p>
               )}
             </div>
           </div>
@@ -210,67 +252,83 @@ const ProjectBasicInfoSection = ({ project }: { project: Project }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">用地面积 (㎡)</label>
-              {false ? (
+              {isEditing ? (
                 <input
                   type="number"
-                  value={editedBasicInfo.scale?.landArea || ''}
-                  onChange={(e) => setEditedBasicInfo(prev => ({
+                  value={editedProject.basicInfo?.scale?.landArea || ''}
+                  onChange={(e) => setEditedProject(prev => ({
                     ...prev,
-                    scale: { ...prev.scale, landArea: Number(e.target.value) }
+                    basicInfo: {
+                      ...prev.basicInfo,
+                      scale: { ...prev.basicInfo?.scale, landArea: Number(e.target.value) }
+                    }
                   }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="请输入用地面积"
                 />
               ) : (
-                <p className="text-gray-900">{project.basicInfo?.scale?.landArea?.toLocaleString() || '未填写'}</p>
+                <p className="text-gray-900">{editedProject.basicInfo?.scale?.landArea?.toLocaleString() || '未填写'}</p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">建筑面积 (㎡)</label>
-              {false ? (
+              {isEditing ? (
                 <input
                   type="number"
-                  value={editedBasicInfo.scale?.buildingArea || ''}
-                  onChange={(e) => setEditedBasicInfo(prev => ({
+                  value={editedProject.basicInfo?.scale?.buildingArea || ''}
+                  onChange={(e) => setEditedProject(prev => ({
                     ...prev,
-                    scale: { ...prev.scale, buildingArea: Number(e.target.value) }
+                    basicInfo: {
+                      ...prev.basicInfo,
+                      scale: { ...prev.basicInfo?.scale, buildingArea: Number(e.target.value) }
+                    }
                   }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="请输入建筑面积"
                 />
               ) : (
-                <p className="text-gray-900">{project.basicInfo?.scale?.buildingArea?.toLocaleString() || '未填写'}</p>
+                <p className="text-gray-900">{editedProject.basicInfo?.scale?.buildingArea?.toLocaleString() || '未填写'}</p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">容积率</label>
-              {false ? (
+              {isEditing ? (
                 <input
                   type="number"
                   step="0.1"
-                  value={editedBasicInfo.scale?.plotRatio || ''}
-                  onChange={(e) => setEditedBasicInfo(prev => ({
+                  value={editedProject.basicInfo?.scale?.plotRatio || ''}
+                  onChange={(e) => setEditedProject(prev => ({
                     ...prev,
-                    scale: { ...prev.scale, plotRatio: Number(e.target.value) }
+                    basicInfo: {
+                      ...prev.basicInfo,
+                      scale: { ...prev.basicInfo?.scale, plotRatio: Number(e.target.value) }
+                    }
                   }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="请输入容积率"
                 />
               ) : (
-                <p className="text-gray-900">{project.basicInfo?.scale?.plotRatio || '未填写'}</p>
+                <p className="text-gray-900">{editedProject.basicInfo?.scale?.plotRatio || '未填写'}</p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">绿化率 (%)</label>
-              {false ? (
+              {isEditing ? (
                 <input
                   type="number"
-                  value={editedBasicInfo.scale?.greenRate || ''}
-                  onChange={(e) => setEditedBasicInfo(prev => ({
+                  value={editedProject.basicInfo?.scale?.greenRate || ''}
+                  onChange={(e) => setEditedProject(prev => ({
                     ...prev,
-                    scale: { ...prev.scale, greenRate: Number(e.target.value) }
+                    basicInfo: {
+                      ...prev.basicInfo,
+                      scale: { ...prev.basicInfo?.scale, greenRate: Number(e.target.value) }
+                    }
                   }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="请输入绿化率"
                 />
               ) : (
-                <p className="text-gray-900">{project.basicInfo?.scale?.greenRate}%</p>
+                <p className="text-gray-900">{editedProject.basicInfo?.scale?.greenRate}%</p>
               )}
             </div>
           </div>
@@ -282,38 +340,101 @@ const ProjectBasicInfoSection = ({ project }: { project: Project }) => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">总套数</label>
-              {false ? (
+              {isEditing ? (
                 <input
                   type="number"
-                  value={editedBasicInfo.product?.totalUnits || ''}
-                  onChange={(e) => setEditedBasicInfo(prev => ({
+                  value={editedProject.basicInfo?.product?.totalUnits || ''}
+                  onChange={(e) => setEditedProject(prev => ({
                     ...prev,
-                    product: { ...prev.product, totalUnits: Number(e.target.value) }
+                    basicInfo: {
+                      ...prev.basicInfo,
+                      product: { ...prev.basicInfo?.product, totalUnits: Number(e.target.value) }
+                    }
                   }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="请输入总套数"
                 />
               ) : (
-                <p className="text-gray-900">{project.basicInfo?.product?.totalUnits || '未填写'} 套</p>
+                <p className="text-gray-900">{editedProject.basicInfo?.product?.totalUnits || '未填写'} 套</p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">价格区间 (万元)</label>
-              <p className="text-gray-900">
-                {project.basicInfo?.product?.priceRange?.min || '未填写'}-{project.basicInfo?.product?.priceRange?.max || '未填写'}万
-              </p>
+              {isEditing ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    value={editedProject.basicInfo?.product?.priceRange?.min || ''}
+                    onChange={(e) => setEditedProject(prev => ({
+                      ...prev,
+                      basicInfo: {
+                        ...prev.basicInfo,
+                        product: {
+                          ...prev.basicInfo?.product,
+                          priceRange: { ...prev.basicInfo?.product?.priceRange, min: Number(e.target.value) }
+                        }
+                      }
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="最低价格"
+                  />
+                  <input
+                    type="number"
+                    value={editedProject.basicInfo?.product?.priceRange?.max || ''}
+                    onChange={(e) => setEditedProject(prev => ({
+                      ...prev,
+                      basicInfo: {
+                        ...prev.basicInfo,
+                        product: {
+                          ...prev.basicInfo?.product,
+                          priceRange: { ...prev.basicInfo?.product?.priceRange, max: Number(e.target.value) }
+                        }
+                      }
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="最高价格"
+                  />
+                </div>
+              ) : (
+                <p className="text-gray-900">
+                  {editedProject.basicInfo?.product?.priceRange?.min || '未填写'}-{editedProject.basicInfo?.product?.priceRange?.max || '未填写'}万
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">产品特色</label>
-              <div className="flex flex-wrap gap-2">
-                {project.basicInfo?.product?.features?.map((feature, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm"
-                  >
-                    {feature}
-                  </span>
-                )) || <span className="text-gray-500">未填写</span>}
-              </div>
+              {isEditing ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="添加产品特色，用逗号分隔"
+                    value={editedProject.basicInfo?.product?.features?.join(', ') || ''}
+                    onChange={(e) => setEditedProject(prev => ({
+                      ...prev,
+                      basicInfo: {
+                        ...prev.basicInfo,
+                        product: {
+                          ...prev.basicInfo?.product,
+                          features: e.target.value.split(',').map(f => f.trim()).filter(f => f)
+                        }
+                      }
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                  <p className="text-xs text-gray-500">用逗号分隔多个特色，例如：精装修, 智能家居, 双学区</p>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {editedProject.basicInfo?.product?.features?.map((feature, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm"
+                    >
+                      {feature}
+                    </span>
+                  )) || <span className="text-gray-500">未填写</span>}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -324,15 +445,19 @@ const ProjectBasicInfoSection = ({ project }: { project: Project }) => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">当前进度</label>
-              {false ? (
+              {isEditing ? (
                 <select
-                  value={editedBasicInfo.timeline?.currentProgress || ''}
-                  onChange={(e) => setEditedBasicInfo(prev => ({
+                  value={editedProject.basicInfo?.timeline?.currentProgress || ''}
+                  onChange={(e) => setEditedProject(prev => ({
                     ...prev,
-                    timeline: { ...prev.timeline, currentProgress: e.target.value }
+                    basicInfo: {
+                      ...prev.basicInfo,
+                      timeline: { ...prev.basicInfo?.timeline, currentProgress: e.target.value }
+                    }
                   }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 >
+                  <option value="">请选择当前进度</option>
                   <option value="拿地前可研阶段">拿地前可研阶段</option>
                   <option value="产品定位阶段">产品定位阶段</option>
                   <option value="开盘节点阶段">开盘节点阶段</option>
@@ -340,22 +465,42 @@ const ProjectBasicInfoSection = ({ project }: { project: Project }) => {
                   <option value="外部合作阶段">外部合作阶段</option>
                 </select>
               ) : (
-                <p className="text-gray-900">{project.basicInfo?.timeline?.currentProgress || '未填写'}</p>
+                <p className="text-gray-900">{editedProject.basicInfo?.timeline?.currentProgress || '未填写'}</p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">项目状态</label>
-              <p className="text-gray-900">
-                <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-                  {project.status === 'active' ? '进行中' :
-                   project.status === 'completed' ? '已完成' :
-                   project.status === 'paused' ? '暂停' : '规划中'}
-                </span>
-              </p>
+              {isEditing ? (
+                <select
+                  value={editedProject.status || ''}
+                  onChange={(e) => setEditedProject(prev => ({
+                    ...prev,
+                    status: e.target.value as Project['status']
+                  }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="planning">规划中</option>
+                  <option value="active">进行中</option>
+                  <option value="paused">暂停</option>
+                  <option value="completed">已完成</option>
+                </select>
+              ) : (
+                <p className="text-gray-900">
+                  <span className={`px-2 py-1 rounded-full text-sm ${
+                    editedProject.status === 'active' ? 'bg-green-100 text-green-700' :
+                    editedProject.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                    editedProject.status === 'paused' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {editedProject.status === 'active' ? '进行中' :
+                     editedProject.status === 'completed' ? '已完成' :
+                     editedProject.status === 'paused' ? '暂停' : '规划中'}
+                  </span>
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">创建时间</label>
-              <p className="text-gray-900">{project.createdAt.toLocaleDateString()}</p>
+              <p className="text-gray-900">{editedProject.createdAt?.toLocaleDateString ? editedProject.createdAt.toLocaleDateString() : '未填写'}</p>
             </div>
           </div>
         </div>
@@ -367,8 +512,33 @@ const ProjectBasicInfoSection = ({ project }: { project: Project }) => {
 // 竞品管理组件
 const CompetitorManagementSection = ({ project }: { project: Project }) => {
   const [competitors, setCompetitors] = useState<Competitor[]>(project.competitors || []);
-  const [isAddingCompetitor, setIsAddingCompetitor] = useState(false);
   const [editingCompetitorId, setEditingCompetitorId] = useState<string | null>(null);
+
+  // 从localStorage加载竞品数据
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedCompetitors = localStorage.getItem(`competitors_${project.id}`);
+        if (savedCompetitors) {
+          setCompetitors(JSON.parse(savedCompetitors));
+        }
+      } catch (error) {
+        console.warn('无法读取保存的竞品数据:', error);
+      }
+    }
+  }, [project.id]);
+
+  // 保存到localStorage
+  const saveCompetitors = (newCompetitors: Competitor[]) => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`competitors_${project.id}`, JSON.stringify(newCompetitors));
+        console.log('竞品数据已保存到本地存储');
+      } catch (error) {
+        console.warn('无法保存竞品数据:', error);
+      }
+    }
+  };
 
   const addNewCompetitor = () => {
     const newCompetitor: Competitor = {
@@ -389,13 +559,32 @@ const CompetitorManagementSection = ({ project }: { project: Project }) => {
       },
       lastUpdated: new Date()
     };
-    setCompetitors([...competitors, newCompetitor]);
+    const newCompetitors = [...competitors, newCompetitor];
+    setCompetitors(newCompetitors);
+    saveCompetitors(newCompetitors);
     setEditingCompetitorId(newCompetitor.id);
-    setIsAddingCompetitor(false);
+
+    // 记录活动
+    activityService.recordCompetitorAdded(project.id, newCompetitor.name);
   };
 
   const deleteCompetitor = (competitorId: string) => {
-    setCompetitors(competitors.filter(comp => comp.id !== competitorId));
+    const newCompetitors = competitors.filter(comp => comp.id !== competitorId);
+    setCompetitors(newCompetitors);
+    saveCompetitors(newCompetitors);
+    if (editingCompetitorId === competitorId) {
+      setEditingCompetitorId(null);
+    }
+  };
+
+  const updateCompetitor = (competitorId: string, updates: Partial<Competitor>) => {
+    const newCompetitors = competitors.map(comp =>
+      comp.id === competitorId
+        ? { ...comp, ...updates, lastUpdated: new Date() }
+        : comp
+    );
+    setCompetitors(newCompetitors);
+    saveCompetitors(newCompetitors);
   };
 
   return (
@@ -425,72 +614,238 @@ const CompetitorManagementSection = ({ project }: { project: Project }) => {
               className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-gray-100"
             >
               <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{competitor.name}</h3>
-                  <p className="text-sm text-gray-600">
-                    📍 {competitor.location.address} · 距离 {competitor.location.distance}km
-                  </p>
+                <div className="flex-1">
+                  {editingCompetitorId === competitor.id ? (
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        value={competitor.name}
+                        onChange={(e) => updateCompetitor(competitor.id, { name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-semibold text-lg"
+                        placeholder="竞品项目名称"
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={competitor.location.address}
+                          onChange={(e) => updateCompetitor(competitor.id, {
+                            location: { ...competitor.location, address: e.target.value }
+                          })}
+                          className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                          placeholder="详细地址"
+                        />
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={competitor.location.distance}
+                          onChange={(e) => updateCompetitor(competitor.id, {
+                            location: { ...competitor.location, distance: Number(e.target.value) }
+                          })}
+                          className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                          placeholder="距离(km)"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{competitor.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        📍 {competitor.location.address} · 距离 {competitor.location.distance}km
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => setEditingCompetitorId(competitor.id)}
-                    className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                    onClick={() => setEditingCompetitorId(editingCompetitorId === competitor.id ? null : competitor.id)}
+                    className={`p-2 rounded-lg transition-colors ${
+                      editingCompetitorId === competitor.id
+                        ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                        : 'text-gray-400 hover:text-indigo-600 hover:bg-indigo-50'
+                    }`}
                   >
-                    ✏️
+                    {editingCompetitorId === competitor.id ? '💾' : '✏️'}
                   </button>
                   <button
                     onClick={() => deleteCompetitor(competitor.id)}
-                    className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     🗑️
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-gray-500">价格区间</p>
-                  <p className="font-medium text-gray-900">
-                    {competitor.product.priceRange.min}-{competitor.product.priceRange.max}万
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">销售情况</p>
-                  <p className="font-medium text-gray-900">
-                    月销量 {competitor.sales.monthlyVolume} 套 · 总销售 {competitor.sales.totalSold} 套
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">营销亮点</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {competitor.marketing.marketingHighlights.map((highlight, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs"
-                      >
-                        {highlight}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">优势 vs 劣势</p>
-                  <div className="grid grid-cols-2 gap-2 mt-1">
-                    <div>
-                      <p className="text-xs text-green-600 mb-1">优势</p>
-                      {competitor.marketing.strengths.map((strength, index) => (
-                        <p key={index} className="text-xs text-gray-700">• {strength}</p>
-                      ))}
-                    </div>
-                    <div>
-                      <p className="text-xs text-red-600 mb-1">劣势</p>
-                      {competitor.marketing.weaknesses.map((weakness, index) => (
-                        <p key={index} className="text-xs text-gray-700">• {weakness}</p>
-                      ))}
+              {editingCompetitorId === competitor.id ? (
+                <div className="space-y-4">
+                  {/* 价格区间编辑 */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">价格区间 (万元)</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        value={competitor.product.priceRange.min}
+                        onChange={(e) => updateCompetitor(competitor.id, {
+                          product: {
+                            ...competitor.product,
+                            priceRange: { ...competitor.product.priceRange, min: Number(e.target.value) }
+                          }
+                        })}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="最低价格"
+                      />
+                      <input
+                        type="number"
+                        value={competitor.product.priceRange.max}
+                        onChange={(e) => updateCompetitor(competitor.id, {
+                          product: {
+                            ...competitor.product,
+                            priceRange: { ...competitor.product.priceRange, max: Number(e.target.value) }
+                          }
+                        })}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="最高价格"
+                      />
                     </div>
                   </div>
+
+                  {/* 销售情况编辑 */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">销售情况</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        value={competitor.sales.monthlyVolume}
+                        onChange={(e) => updateCompetitor(competitor.id, {
+                          sales: { ...competitor.sales, monthlyVolume: Number(e.target.value) }
+                        })}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="月销量"
+                      />
+                      <input
+                        type="number"
+                        value={competitor.sales.totalSold}
+                        onChange={(e) => updateCompetitor(competitor.id, {
+                          sales: { ...competitor.sales, totalSold: Number(e.target.value) }
+                        })}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="总销售套数"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 营销亮点编辑 */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">营销亮点</label>
+                    <input
+                      type="text"
+                      value={competitor.marketing.marketingHighlights.join(', ')}
+                      onChange={(e) => updateCompetitor(competitor.id, {
+                        marketing: {
+                          ...competitor.marketing,
+                          marketingHighlights: e.target.value.split(',').map(h => h.trim()).filter(h => h)
+                        }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="营销亮点，用逗号分隔"
+                    />
+                  </div>
+
+                  {/* 优势劣势编辑 */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-green-600 block mb-1">优势</label>
+                      <textarea
+                        value={competitor.marketing.strengths.join('\n')}
+                        onChange={(e) => updateCompetitor(competitor.id, {
+                          marketing: {
+                            ...competitor.marketing,
+                            strengths: e.target.value.split('\n').map(s => s.trim()).filter(s => s)
+                          }
+                        })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 h-20"
+                        placeholder="每行一个优势"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-red-600 block mb-1">劣势</label>
+                      <textarea
+                        value={competitor.marketing.weaknesses.join('\n')}
+                        onChange={(e) => updateCompetitor(competitor.id, {
+                          marketing: {
+                            ...competitor.marketing,
+                            weaknesses: e.target.value.split('\n').map(w => w.trim()).filter(w => w)
+                          }
+                        })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 h-20"
+                        placeholder="每行一个劣势"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 状态选择 */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">项目状态</label>
+                    <select
+                      value={competitor.status}
+                      onChange={(e) => updateCompetitor(competitor.id, {
+                        status: e.target.value as Competitor['status']
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="selling">销售中</option>
+                      <option value="presale">预售</option>
+                      <option value="construction">建设中</option>
+                      <option value="planning">规划中</option>
+                      <option value="soldout">已售罄</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-500">价格区间</p>
+                    <p className="font-medium text-gray-900">
+                      {competitor.product.priceRange.min}-{competitor.product.priceRange.max}万
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">销售情况</p>
+                    <p className="font-medium text-gray-900">
+                      月销量 {competitor.sales.monthlyVolume} 套 · 总销售 {competitor.sales.totalSold} 套
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">营销亮点</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {competitor.marketing.marketingHighlights.map((highlight, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs"
+                        >
+                          {highlight}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">优势 vs 劣势</p>
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      <div>
+                        <p className="text-xs text-green-600 mb-1">优势</p>
+                        {competitor.marketing.strengths.map((strength, index) => (
+                          <p key={index} className="text-xs text-gray-700">• {strength}</p>
+                        ))}
+                      </div>
+                      <div>
+                        <p className="text-xs text-red-600 mb-1">劣势</p>
+                        {competitor.marketing.weaknesses.map((weakness, index) => (
+                          <p key={index} className="text-xs text-gray-700">• {weakness}</p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
                 <span className="text-xs text-gray-500">
@@ -530,61 +885,207 @@ const CompetitorManagementSection = ({ project }: { project: Project }) => {
 // 目标客群管理组件
 const TargetAudienceSection = ({ project }: { project: Project }) => {
   const [targetAudience, setTargetAudience] = useState(project.targetAudience);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // 从localStorage加载目标客群数据
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedTargetAudience = localStorage.getItem(`target_audience_${project.id}`);
+        if (savedTargetAudience) {
+          setTargetAudience(JSON.parse(savedTargetAudience));
+        }
+      } catch (error) {
+        console.warn('无法读取保存的目标客群数据:', error);
+      }
+    }
+  }, [project.id]);
+
+  // 保存到localStorage
+  const saveTargetAudience = (newTargetAudience: TargetAudience) => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`target_audience_${project.id}`, JSON.stringify(newTargetAudience));
+        console.log('目标客群数据已保存到本地存储');
+      } catch (error) {
+        console.warn('无法保存目标客群数据:', error);
+      }
+    }
+  };
+
+  const updateTargetAudience = (updates: Partial<TargetAudience>) => {
+    if (!targetAudience) return;
+    const newTargetAudience = { ...targetAudience, ...updates };
+    setTargetAudience(newTargetAudience);
+    saveTargetAudience(newTargetAudience);
+  };
 
   return (
     <div className="space-y-6">
-      {/* 标题 */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900">目标客群画像</h2>
-        <p className="text-gray-600 text-sm mt-1">定义和管理项目的目标客户群体特征</p>
+      {/* 标题和编辑按钮 */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">目标客群画像</h2>
+          <p className="text-gray-600 text-sm mt-1">定义和管理项目的目标客户群体特征</p>
+        </div>
+        <button
+          onClick={() => setIsEditing(!isEditing)}
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            isEditing
+              ? 'bg-green-600 text-white hover:bg-green-700'
+              : 'bg-indigo-600 text-white hover:bg-indigo-700'
+          }`}
+        >
+          {isEditing ? '📝 编辑中' : '✏️ 开始编辑'}
+        </button>
       </div>
 
       {/* 主要客群 */}
       <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-gray-100">
         <h3 className="font-semibold text-gray-900 mb-4">👥 主要客群特征</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isEditing ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">客群名称</label>
+                <input
+                  type="text"
+                  value={targetAudience?.primaryGroup.name || ''}
+                  onChange={(e) => updateTargetAudience({
+                    primaryGroup: { ...targetAudience?.primaryGroup!, name: e.target.value }
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="客群名称"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">年龄范围</label>
+                <input
+                  type="text"
+                  value={targetAudience?.primaryGroup.ageRange || ''}
+                  onChange={(e) => updateTargetAudience({
+                    primaryGroup: { ...targetAudience?.primaryGroup!, ageRange: e.target.value }
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="年龄范围"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">收入水平</label>
+                <input
+                  type="text"
+                  value={targetAudience?.primaryGroup.income || ''}
+                  onChange={(e) => updateTargetAudience({
+                    primaryGroup: { ...targetAudience?.primaryGroup!, income: e.target.value }
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="收入水平"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">教育背景</label>
+                <input
+                  type="text"
+                  value={targetAudience?.primaryGroup.education || ''}
+                  onChange={(e) => updateTargetAudience({
+                    primaryGroup: { ...targetAudience?.primaryGroup!, education: e.target.value }
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="教育背景"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">家庭结构</label>
+                <input
+                  type="text"
+                  value={targetAudience?.primaryGroup.familyStructure || ''}
+                  onChange={(e) => updateTargetAudience({
+                    primaryGroup: { ...targetAudience?.primaryGroup!, familyStructure: e.target.value }
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="家庭结构"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">购房动机</label>
+                <select
+                  value={targetAudience?.primaryGroup.buyingMotivation || ''}
+                  onChange={(e) => updateTargetAudience({
+                    primaryGroup: { ...targetAudience?.primaryGroup!, buyingMotivation: e.target.value as any }
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="firstTime">首次置业</option>
+                  <option value="upgrade">改善型</option>
+                  <option value="investment">投资型</option>
+                  <option value="other">其他</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">主要职业</label>
+              <input
+                type="text"
+                value={targetAudience?.primaryGroup.occupation.join(', ') || ''}
+                onChange={(e) => updateTargetAudience({
+                  primaryGroup: {
+                    ...targetAudience?.primaryGroup!,
+                    occupation: e.target.value.split(',').map(o => o.trim()).filter(o => o)
+                  }
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="主要职业，用逗号分隔"
+              />
+              <p className="text-xs text-gray-500 mt-1">用逗号分隔多个职业，例如：互联网, 金融, 医疗</p>
+            </div>
+          </div>
+        ) : (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">客群名称</label>
-            <p className="text-gray-900 font-medium">{targetAudience?.primaryGroup.name}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">客群名称</label>
+                <p className="text-gray-900 font-medium">{targetAudience?.primaryGroup.name}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">年龄范围</label>
+                <p className="text-gray-900">{targetAudience?.primaryGroup.ageRange}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">收入水平</label>
+                <p className="text-gray-900">{targetAudience?.primaryGroup.income}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">教育背景</label>
+                <p className="text-gray-900">{targetAudience?.primaryGroup.education}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">家庭结构</label>
+                <p className="text-gray-900">{targetAudience?.primaryGroup.familyStructure}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">购房动机</label>
+                <p className="text-gray-900">
+                  {targetAudience?.primaryGroup.buyingMotivation === 'firstTime' ? '首次置业' :
+                   targetAudience?.primaryGroup.buyingMotivation === 'upgrade' ? '改善型' :
+                   targetAudience?.primaryGroup.buyingMotivation === 'investment' ? '投资型' : '其他'}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">主要职业</label>
+              <div className="flex flex-wrap gap-2">
+                {targetAudience?.primaryGroup.occupation.map((job, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm"
+                  >
+                    {job}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">年龄范围</label>
-            <p className="text-gray-900">{targetAudience?.primaryGroup.ageRange}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">收入水平</label>
-            <p className="text-gray-900">{targetAudience?.primaryGroup.income}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">教育背景</label>
-            <p className="text-gray-900">{targetAudience?.primaryGroup.education}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">家庭结构</label>
-            <p className="text-gray-900">{targetAudience?.primaryGroup.familyStructure}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">购房动机</label>
-            <p className="text-gray-900">
-              {targetAudience?.primaryGroup.buyingMotivation === 'firstTime' ? '首次置业' :
-               targetAudience?.primaryGroup.buyingMotivation === 'upgrade' ? '改善型' :
-               targetAudience?.primaryGroup.buyingMotivation === 'investment' ? '投资型' : '其他'}
-            </p>
-          </div>
-        </div>
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">主要职业</label>
-          <div className="flex flex-wrap gap-2">
-            {targetAudience?.primaryGroup.occupation.map((job, index) => (
-              <span
-                key={index}
-                className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm"
-              >
-                {job}
-              </span>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* 客户偏好 */}
