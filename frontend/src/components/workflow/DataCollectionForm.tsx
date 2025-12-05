@@ -79,6 +79,7 @@ export interface DataCollectionFormProps {
   onSave?: (data: Partial<DataCollectionFormData>) => void;
   isLoading?: boolean;
   className?: string;
+  mobileOptimized?: boolean;
 }
 
 export function DataCollectionForm({
@@ -86,7 +87,8 @@ export function DataCollectionForm({
   onSubmit,
   onSave,
   isLoading = false,
-  className
+  className,
+  mobileOptimized = false
 }: DataCollectionFormProps) {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
