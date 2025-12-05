@@ -1,3 +1,4 @@
+import React from 'react';
 import { ReportFormData } from '@/components/project/ReportFormBase';
 
 export interface ReportGenerationRequest {
@@ -13,6 +14,7 @@ export interface ReportSection {
   id: string;
   title: string;
   subtitle?: string;
+  icon?: React.ReactNode;
   content: string;
   charts?: ChartData[];
   tables?: TableData[];
