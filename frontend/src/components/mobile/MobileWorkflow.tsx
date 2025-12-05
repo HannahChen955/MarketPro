@@ -729,15 +729,16 @@ export const MobileWorkflow = memo<MobileWorkflowProps>(({
               <div className="overflow-y-auto max-h-[calc(80vh-80px)]">
                 {state.bottomSheetContent === 'ai' && (
                   <LazyAIAssistant
-                    mode="inline"
+                    isOpen={true}
+                    onToggle={() => {}}
+                    position="inline"
                     context={{
-                      page: 'mobile-workflow',
-                      step: state.currentStep,
-                      formData: state.formData,
+                      currentStep: state.currentStep.toString(),
+                      projectData: state.formData,
                       reportType: reportTypeName
                     }}
-                    onSendMessage={(message) => {
-                      // 处理AI消息
+                    onActionRequest={(action, data) => {
+                      // 处理AI动作请求
                     }}
                     className="h-96"
                   />
