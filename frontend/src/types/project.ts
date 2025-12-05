@@ -7,13 +7,17 @@ export type ProjectType = 'residential' | 'commercial' | 'villa' | 'mixed';
 
 export type ProjectStatus = 'active' | 'completed' | 'paused' | 'planning';
 
-export type BuyingMotivation = 'first' | 'upgrade' | 'investment';
+export type BuyingMotivation = 'first' | 'firstTime' | 'upgrade' | 'investment';
 
-export type CompetitorStatus = 'presale' | 'selling' | 'soldout' | 'paused';
+export type CompetitorStatus = 'presale' | 'selling' | 'soldout' | 'paused' | 'construction' | 'planning';
 
 // 户型相关
-export interface HouseType {
+export type HouseType = 'studio' | 'oneBedroom' | 'twoBedroom' | 'threeBedroom' | 'fourBedroom' | 'penthouse' | 'maisonette';
+
+// 如果需要详细的户型信息，使用这个接口
+export interface HouseTypeDetail {
   id: string;
+  type: HouseType;                 // 户型类型
   name: string;                    // "三房两厅"
   rooms: number;                   // 房间数
   halls: number;                   // 厅数

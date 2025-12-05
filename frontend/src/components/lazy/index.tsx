@@ -114,22 +114,4 @@ export const LazyReportsListPage = createLazyComponent(
   />
 );
 
-// 导出所有懒加载组件
-export {
-  // 工作流相关
-  LazyReportWorkflow,
-  LazyDataCollectionForm,
-  LazyProgressTracker,
-  LazyWorkflowStepper,
-  // AI 和预览
-  LazyAIAssistant,
-  LazyReportPreview,
-  // UI 组件
-  LazyChart,
-  LazyDataTable,
-  LazyRichEditor,
-  LazyFileUpload,
-  // 页面组件
-  LazySettingsPage,
-  LazyReportsListPage
-};
+// 所有组件已在上面通过 export const 导出，无需重复导出

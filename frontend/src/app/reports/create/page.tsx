@@ -112,21 +112,21 @@ export default function CreateReportPage() {
       setAnalysisResult(analysisResponse.data);
 
       // 根据分析结果预填表单
-      const result = analysisResponse.data;
+      const result = analysisResponse.data as any;
       setForm(prev => ({
         ...prev,
-        name: result.suggestedConfig.reportType,
-        estimatedTime: result.suggestedConfig.estimatedTime,
+        name: result.suggestedConfig?.reportType || prev.name,
+        estimatedTime: result.suggestedConfig?.estimatedTime || prev.estimatedTime,
         configuration: {
           ...prev.configuration,
-          inputSchema: result.suggestedConfig.requiredFields.map((field: string, index: number) => ({
+          inputSchema: result.suggestedConfig?.requiredFields?.map((field: string, index: number) => ({
             id: `field_${index}`,
             label: field,
             type: 'text' as const,
             required: true,
             description: `请输入${field}相关信息`,
             placeholder: `请输入${field}...`
-          }))
+          })) || prev.configuration.inputSchema
         }
       }));
 
