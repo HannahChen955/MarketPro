@@ -211,7 +211,7 @@ export function createToastHelpers() {
     info: (title: string, message?: string, options?: Partial<Toast>) =>
       showToast({ type: 'info', title, message, ...options }),
 
-    promise: async <T>(
+    promise: async <T,>(
       promise: Promise<T>,
       messages: {
         loading: string;
@@ -264,7 +264,7 @@ export function useToastHelpers() {
     info: (title: string, message?: string, options?: Partial<Toast>) =>
       toast.showToast({ type: 'info', title, message, ...options }),
 
-    promise: async <T>(
+    promise: async <T,>(
       promise: Promise<T>,
       messages: {
         loading: string;

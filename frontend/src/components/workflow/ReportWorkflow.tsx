@@ -469,7 +469,7 @@ export function ReportWorkflow({
             {/* AI助手和预览控制 */}
             <div className="flex items-center gap-1 border rounded-lg p-1">
               <Button
-                variant={state.showAIAssistant ? "default" : "outline"}
+                variant={state.showAIAssistant ? "primary" : "outline"}
                 size="sm"
                 leftIcon={<MessageCircle className="w-4 h-4" />}
                 onClick={() => setState(prev => ({ ...prev, showAIAssistant: !prev.showAIAssistant }))}
@@ -479,7 +479,7 @@ export function ReportWorkflow({
               </Button>
 
               <Button
-                variant={state.showPreview ? "default" : "outline"}
+                variant={state.showPreview ? "primary" : "outline"}
                 size="sm"
                 leftIcon={<Eye className="w-4 h-4" />}
                 onClick={() => setState(prev => ({ ...prev, showPreview: !prev.showPreview }))}
@@ -580,20 +580,13 @@ export function ReportWorkflow({
 
                   <TabsContent value="assistant" className="mt-4">
                     <AIAssistant
-                      mode="inline"
+                      isOpen={true}
+                      onToggle={() => setState(prev => ({ ...prev, showAIAssistant: !prev.showAIAssistant }))}
                       context={{
-                        page: 'workflow',
-                        step: state.currentStep,
-                        formData: state.formData,
+                        currentStep: String(state.currentStep),
+                        projectData: state.formData,
                         reportType: reportTypeName
                       }}
-                      onSendMessage={(message) => {
-                        setState(prev => ({
-                          ...prev,
-                          aiChatHistory: [...prev.aiChatHistory, { type: 'user', content: message, timestamp: new Date() }]
-                        }));
-                      }}
-                      className="h-[600px]"
                     />
                   </TabsContent>
                 </Tabs>
@@ -616,20 +609,13 @@ export function ReportWorkflow({
 
               {!state.showPreview && state.showAIAssistant && (
                 <AIAssistant
-                  mode="inline"
+                  isOpen={true}
+                  onToggle={() => setState(prev => ({ ...prev, showAIAssistant: !prev.showAIAssistant }))}
                   context={{
-                    page: 'workflow',
-                    step: state.currentStep,
-                    formData: state.formData,
+                    currentStep: String(state.currentStep),
+                    projectData: state.formData,
                     reportType: reportTypeName
                   }}
-                  onSendMessage={(message) => {
-                    setState(prev => ({
-                      ...prev,
-                      aiChatHistory: [...prev.aiChatHistory, { type: 'user', content: message, timestamp: new Date() }]
-                    }));
-                  }}
-                  className="h-[700px]"
                 />
               )}
             </div>
@@ -734,21 +720,13 @@ export function ReportWorkflow({
       {/* 浮动 AI 助手 */}
       {state.showAIAssistant && state.previewMode !== 'side' && (
         <AIAssistant
-          mode="floating"
+          isOpen={true}
+          onToggle={() => setState(prev => ({ ...prev, showAIAssistant: !prev.showAIAssistant }))}
           context={{
-            page: 'workflow',
-            step: state.currentStep,
-            formData: state.formData,
+            currentStep: String(state.currentStep),
+            projectData: state.formData,
             reportType: reportTypeName
           }}
-          onSendMessage={(message) => {
-            setState(prev => ({
-              ...prev,
-              aiChatHistory: [...prev.aiChatHistory, { type: 'user', content: message, timestamp: new Date() }]
-            }));
-          }}
-          onClose={() => setState(prev => ({ ...prev, showAIAssistant: false }))}
-          className="z-50"
         />
       )}
     </div>

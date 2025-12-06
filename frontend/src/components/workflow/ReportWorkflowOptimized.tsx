@@ -75,7 +75,7 @@ interface OptimizedWorkflowState {
 }
 
 // 记忆化的工作流程步骤配置
-const MemoizedWorkflowSteps = memo<{ currentStep: number }>(({ currentStep }) => {
+const useWorkflowSteps = (currentStep: number) => {
   return useMemo(() => [
     {
       id: 'data_collection',
@@ -110,9 +110,7 @@ const MemoizedWorkflowSteps = memo<{ currentStep: number }>(({ currentStep }) =>
       estimatedTime: '1-2分钟'
     }
   ] as WorkflowStep[], [currentStep]);
-});
-
-MemoizedWorkflowSteps.displayName = 'MemoizedWorkflowSteps';
+};
 
 export const ReportWorkflowOptimized = memo<ReportWorkflowOptimizedProps>(({
   reportTypeId,
@@ -569,7 +567,7 @@ export const ReportWorkflowOptimized = memo<ReportWorkflowOptimizedProps>(({
             {/* AI助手和预览控制 */}
             <div className="flex items-center gap-1 border rounded-lg p-1">
               <Button
-                variant={state.showAIAssistant ? "default" : "outline"}
+                variant={state.showAIAssistant ? "primary" : "outline"}
                 size="sm"
                 leftIcon={<MessageCircle className="w-4 h-4" />}
                 onClick={() => setState(prev => ({ ...prev, showAIAssistant: !prev.showAIAssistant }))}
@@ -579,7 +577,7 @@ export const ReportWorkflowOptimized = memo<ReportWorkflowOptimizedProps>(({
               </Button>
 
               <Button
-                variant={state.showPreview ? "default" : "outline"}
+                variant={state.showPreview ? "primary" : "outline"}
                 size="sm"
                 leftIcon={<Eye className="w-4 h-4" />}
                 onClick={() => setState(prev => ({ ...prev, showPreview: !prev.showPreview }))}
@@ -679,20 +677,13 @@ export const ReportWorkflowOptimized = memo<ReportWorkflowOptimizedProps>(({
 
                   <TabsContent value="assistant" className="mt-4">
                     <LazyAIAssistant
-                      mode="inline"
+                      isOpen={true}
+                      onToggle={() => setState(prev => ({ ...prev, showAIAssistant: !prev.showAIAssistant }))}
                       context={{
-                        page: 'workflow',
-                        step: state.currentStep,
-                        formData: state.formData,
+                        currentStep: String(state.currentStep),
+                        projectData: state.formData,
                         reportType: reportTypeName
                       }}
-                      onSendMessage={(message) => {
-                        setState(prev => ({
-                          ...prev,
-                          aiChatHistory: [...prev.aiChatHistory, { type: 'user', content: message, timestamp: new Date() }]
-                        }));
-                      }}
-                      className="h-[600px]"
                     />
                   </TabsContent>
                 </Tabs>
@@ -715,20 +706,13 @@ export const ReportWorkflowOptimized = memo<ReportWorkflowOptimizedProps>(({
 
               {!state.showPreview && state.showAIAssistant && (
                 <LazyAIAssistant
-                  mode="inline"
+                  isOpen={true}
+                  onToggle={() => setState(prev => ({ ...prev, showAIAssistant: !prev.showAIAssistant }))}
                   context={{
-                    page: 'workflow',
-                    step: state.currentStep,
-                    formData: state.formData,
+                    currentStep: String(state.currentStep),
+                    projectData: state.formData,
                     reportType: reportTypeName
                   }}
-                  onSendMessage={(message) => {
-                    setState(prev => ({
-                      ...prev,
-                      aiChatHistory: [...prev.aiChatHistory, { type: 'user', content: message, timestamp: new Date() }]
-                    }));
-                  }}
-                  className="h-[700px]"
                 />
               )}
             </div>
@@ -832,21 +816,13 @@ export const ReportWorkflowOptimized = memo<ReportWorkflowOptimizedProps>(({
       {/* 浮动 AI 助手 */}
       {state.showAIAssistant && state.previewMode !== 'side' && (
         <LazyAIAssistant
-          mode="floating"
+          isOpen={true}
+          onToggle={() => setState(prev => ({ ...prev, showAIAssistant: !prev.showAIAssistant }))}
           context={{
-            page: 'workflow',
-            step: state.currentStep,
-            formData: state.formData,
+            currentStep: String(state.currentStep),
+            projectData: state.formData,
             reportType: reportTypeName
           }}
-          onSendMessage={(message) => {
-            setState(prev => ({
-              ...prev,
-              aiChatHistory: [...prev.aiChatHistory, { type: 'user', content: message, timestamp: new Date() }]
-            }));
-          }}
-          onClose={() => setState(prev => ({ ...prev, showAIAssistant: false }))}
-          className="z-50"
         />
       )}
     </PerformanceContainer>

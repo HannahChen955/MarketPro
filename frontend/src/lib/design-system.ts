@@ -267,14 +267,14 @@ export const componentVariants = {
       xl: 'h-12 px-10 text-lg'
     },
     variant: {
-      primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
-      secondary: 'bg-neutral-200 text-neutral-900 hover:bg-neutral-300 focus:ring-neutral-500',
-      success: 'bg-success-600 text-white hover:bg-success-700 focus:ring-success-500',
-      warning: 'bg-warning-600 text-white hover:bg-warning-700 focus:ring-warning-500',
-      error: 'bg-error-600 text-white hover:bg-error-700 focus:ring-error-500',
-      outline: 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50',
-      ghost: 'text-neutral-700 hover:bg-neutral-100',
-      link: 'text-primary-600 hover:text-primary-700 underline-offset-4 hover:underline'
+      primary: 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500',
+      secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
+      success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
+      warning: 'bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500',
+      error: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+      outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+      ghost: 'text-gray-700 hover:bg-gray-100',
+      link: 'text-indigo-600 hover:text-indigo-700 underline-offset-4 hover:underline'
     }
   },
 
@@ -286,18 +286,18 @@ export const componentVariants = {
       lg: 'h-12 px-4 text-base'
     },
     variant: {
-      default: 'border-neutral-300 focus:border-primary-500 focus:ring-primary-500',
-      error: 'border-error-500 focus:border-error-500 focus:ring-error-500',
-      success: 'border-success-500 focus:border-success-500 focus:ring-success-500'
+      default: 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500',
+      error: 'border-red-500 focus:border-red-500 focus:ring-red-500',
+      success: 'border-green-500 focus:border-green-500 focus:ring-green-500'
     }
   },
 
   // 卡片变体
   card: {
     variant: {
-      default: 'bg-white border border-neutral-200 shadow-sm',
-      elevated: 'bg-white border border-neutral-200 shadow-lg',
-      outlined: 'bg-white border-2 border-neutral-300',
+      default: 'bg-white border border-gray-200 shadow-sm',
+      elevated: 'bg-white border border-gray-200 shadow-lg',
+      outlined: 'bg-white border-2 border-gray-300',
       glass: 'bg-white/80 backdrop-blur-md border border-white/20 shadow-lg'
     },
     padding: {
@@ -317,12 +317,12 @@ export const componentVariants = {
       lg: 'px-3 py-1.5 text-base'
     },
     variant: {
-      default: 'bg-neutral-100 text-neutral-700',
-      primary: 'bg-primary-100 text-primary-700',
-      secondary: 'bg-secondary-100 text-secondary-700',
-      success: 'bg-success-100 text-success-700',
-      warning: 'bg-warning-100 text-warning-700',
-      error: 'bg-error-100 text-error-700'
+      default: 'bg-gray-100 text-gray-700',
+      primary: 'bg-indigo-100 text-indigo-700',
+      secondary: 'bg-purple-100 text-purple-700',
+      success: 'bg-green-100 text-green-700',
+      warning: 'bg-yellow-100 text-yellow-700',
+      error: 'bg-red-100 text-red-700'
     }
   }
 };
@@ -330,24 +330,24 @@ export const componentVariants = {
 // 语义化颜色
 export const semanticColors = {
   text: {
-    primary: designTokens.colors.neutral[900],
-    secondary: designTokens.colors.neutral[700],
-    tertiary: designTokens.colors.neutral[500],
-    disabled: designTokens.colors.neutral[400],
-    inverse: designTokens.colors.neutral[0]
+    primary: '#0f172a',
+    secondary: '#334155',
+    tertiary: '#64748b',
+    disabled: '#94a3b8',
+    inverse: '#ffffff'
   },
   background: {
-    primary: designTokens.colors.neutral[0],
-    secondary: designTokens.colors.neutral[50],
-    tertiary: designTokens.colors.neutral[100],
-    elevated: designTokens.colors.neutral[0],
+    primary: '#ffffff',
+    secondary: '#f8fafc',
+    tertiary: '#f1f5f9',
+    elevated: '#ffffff',
     overlay: 'rgba(0, 0, 0, 0.5)'
   },
   border: {
-    default: designTokens.colors.neutral[200],
-    subtle: designTokens.colors.neutral[100],
-    strong: designTokens.colors.neutral[300],
-    interactive: designTokens.colors.primary[300]
+    default: '#e2e8f0',
+    subtle: '#f1f5f9',
+    strong: '#cbd5e1',
+    interactive: '#93c5fd'
   }
 };
 

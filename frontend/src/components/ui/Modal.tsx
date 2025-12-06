@@ -59,7 +59,10 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
                 </Dialog.Overlay>
 
                 {/* 模态框内容 */}
-                <Dialog.Content asChild>
+                <Dialog.Content
+                  asChild
+                  onEscapeKeyDown={!closeOnEscapeKey ? (e) => e.preventDefault() : undefined}
+                >
                   <motion.div
                     ref={ref}
                     className={cn(
@@ -72,7 +75,6 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
                     exit={{ opacity: 0, scale: 0.95, x: '-50%', y: '-50%' }}
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     style={{ transform: 'translate(-50%, -50%)' }}
-                    onEscapeKeyDown={!closeOnEscapeKey ? (e) => e.preventDefault() : undefined}
                   >
                     {/* 头部 */}
                     {(title || description || showCloseButton) && (
