@@ -145,7 +145,7 @@ export class AISystemInteraction {
             return {
               success: true,
               data: response.data,
-              message: `找到 ${response.data?.length || 0} 个项目`
+              message: `找到 ${(response.data as any)?.length || 0} 个项目`
             };
           }
           return { success: false, message: '获取项目列表失败' };
@@ -198,7 +198,7 @@ export class AISystemInteraction {
           // 获取用户的所有任务
           const response = await taskApi.getByUser();
           if (response.success) {
-            const activeTasks = response.data?.filter((task: any) =>
+            const activeTasks = (response.data as any)?.filter((task: any) =>
               task.status === 'running' || task.status === 'pending'
             );
             return {
@@ -228,11 +228,11 @@ export class AISystemInteraction {
         try {
           const response = await taskApi.getByUser();
           if (response.success) {
-            this.context.currentTasks = response.data;
+            this.context.currentTasks = response.data as any;
             return {
               success: true,
               data: response.data,
-              message: `当前有 ${response.data?.length || 0} 个任务`
+              message: `当前有 ${(response.data as any)?.length || 0} 个任务`
             };
           }
           return { success: false, message: '获取任务列表失败' };

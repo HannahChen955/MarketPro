@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, BarChart3, TrendingUp, Target, Zap, Eye, Layers } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/ui/Button';
 
 export default function HomePage() {
   return (

@@ -199,7 +199,8 @@ export function estimateDownloadTime(totalSize: number, connectionSpeed: number 
 export function checkDownloadSupport(): boolean {
   return typeof document.createElement === 'function' &&
          typeof window.URL === 'object' &&
-         typeof window.URL.createObjectURL === 'function';
+         window.URL &&
+         typeof (window.URL as any).createObjectURL === 'function';
 }
 
 /**

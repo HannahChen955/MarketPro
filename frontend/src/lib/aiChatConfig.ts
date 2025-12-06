@@ -260,7 +260,7 @@ export function getIntelligentSuggestions(
   suggestions.push(...professionalSuggestions.slice(0, 2));
 
   // 去重并限制数量
-  return [...new Set(suggestions)].slice(0, 4);
+  return Array.from(new Set(suggestions)).slice(0, 4);
 }
 
 // 检测用户意图类型

@@ -62,7 +62,7 @@ class ApiClient {
           errorData = {
             error: 'Network Error',
             message: `HTTP ${response.status}: ${response.statusText}`,
-          };
+          } as any;
         }
 
         throw new ApiError(errorData.message || errorData.error, response.status);

@@ -176,11 +176,20 @@ export interface TargetAudience {
 export interface Project {
   id: string;
   name: string;                    // "万科翡翠公园"
+  description?: string;            // 项目描述
   alias?: string;                  // 项目别名或推广名
-  city: string;                    // "深圳"
-  type: ProjectType;
-  status: ProjectStatus;
-  currentPhase: PhaseId;           // 当前营销阶段
+  city?: string;                   // "深圳" - 可选，兼容老数据
+  type?: ProjectType;              // 可选，兼容老数据
+  status?: ProjectStatus;          // 可选，兼容老数据
+  currentPhase?: PhaseId;          // 当前营销阶段 - 可选，兼容老数据
+
+  // 兼容老版本的属性
+  industry?: string;               // 行业分类
+  targetMarket?: string;           // 目标市场
+  stage?: string;                  // 项目阶段
+  budget?: number;                 // 预算
+  timeline?: number;               // 时间线
+  database?: any;                  // 数据库配置
 
   // 时间戳
   createdAt: Date;

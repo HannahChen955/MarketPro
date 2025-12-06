@@ -86,7 +86,8 @@ export class ReportExportService {
     });
 
     // 动态导入 jsPDF 库
-    const { jsPDF } = await import('jspdf');
+    const jsPDFModule = await import('jspdf');
+    const jsPDF = jsPDFModule.default;
 
     // 创建PDF文档
     const doc = new jsPDF({
@@ -167,13 +168,13 @@ export class ReportExportService {
       });
 
       // 添加关键发现
-      if (section.keyFindings && section.keyFindings.length > 0) {
+      if ((section as any).keyFindings && (section as any).keyFindings.length > 0) {
         yPosition += 5;
         doc.setFontSize(11);
         doc.text('关键发现:', margins.left, yPosition);
         yPosition += 8;
 
-        section.keyFindings.forEach(finding => {
+        (section as any).keyFindings.forEach(finding => {
           if (yPosition > 280) {
             doc.addPage();
             yPosition = 20;
@@ -326,12 +327,12 @@ export class ReportExportService {
             new Paragraph({
               children: [new TextRun(section.content)],
             }),
-            ...(section.keyFindings && section.keyFindings.length > 0 ? [
+            ...((section as any).keyFindings && (section as any).keyFindings.length > 0 ? [
               new Paragraph({
                 text: '关键发现:',
                 heading: HeadingLevel.HEADING_2,
               }),
-              ...section.keyFindings.map(finding =>
+              ...(section as any).keyFindings.map(finding =>
                 new Paragraph({
                   children: [new TextRun(`• ${finding}`)],
                 })
@@ -411,7 +412,7 @@ export class ReportExportService {
 
     // 下载文件
     const fileName = `${this.sanitizeFileName(report.title)}_${new Date().toISOString().split('T')[0]}.docx`;
-    this.downloadBuffer(buffer, fileName, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    this.downloadBuffer(buffer as unknown as ArrayBuffer, fileName, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   }
 
   /**
@@ -465,10 +466,10 @@ export class ReportExportService {
         [section.content],
         [],
         ['关键发现'],
-        ...(section.keyFindings || []).map(finding => [finding]),
+        ...((section as any).keyFindings || []).map(finding => [finding]),
         [],
         ['数据分析'],
-        ...(section.dataPoints || []).map(point => [
+        ...((section as any).dataPoints || []).map((point: any) => [
           point.metric,
           point.value,
           point.unit || '',

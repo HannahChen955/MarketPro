@@ -49,9 +49,9 @@ export default function AIAssistantDebug() {
 
       if (response.success) {
         addLog('✅ AI助手API调用成功！');
-        addLog(`🤖 AI回复: ${response.data?.message || '无回复内容'}`);
+        addLog(`🤖 AI回复: ${(response.data as any)?.message || '无回复内容'}`);
       } else {
-        addLog(`❌ API调用失败: ${response.error || '未知错误'}`);
+        addLog(`❌ API调用失败: ${(response as any).error || '未知错误'}`);
       }
 
     } catch (error) {
@@ -150,7 +150,7 @@ export default function AIAssistantDebug() {
 
 // 全局调试函数，可以在浏览器控制台调用
 if (typeof window !== 'undefined') {
-  window.showAIDebugPanel = () => {
+  (window as any).showAIDebugPanel = () => {
     const existingPanel = document.getElementById('ai-debug-panel');
     if (existingPanel) {
       existingPanel.style.display = 'block';

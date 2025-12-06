@@ -7,9 +7,9 @@ import { PhaseId } from './project';
 
 // 报告相关枚举
 export type ReportStatus = 'draft' | 'generating' | 'generated' | 'error' | 'exported';
-export type ReportCategory = '分析类' | '策略类' | '复盘类' | '定期类' | '模板类' | '决策类';
+export type ReportCategory = '分析类' | '策略类' | '复盘类' | '定期类' | '模板类' | '决策类' | '计划类' | '合作类';
 export type ReportPriority = 'core' | 'normal' | 'optional';
-export type ReportComplexity = 'simple' | 'standard' | 'complex';
+export type ReportComplexity = 'simple' | 'standard' | 'complex' | 'detailed';
 export type GenerationStatus = 'idle' | 'collecting' | 'validating' | 'generating' | 'rendering' | 'completed' | 'error';
 
 // 报告定义（配置表）- 2.0核心配置

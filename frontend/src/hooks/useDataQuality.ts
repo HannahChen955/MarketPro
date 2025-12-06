@@ -378,8 +378,8 @@ function calculateMilestonesScore(project: Project): number {
   if (!timeline) return 0;
 
   let score = 0;
-  if (timeline.plannedLaunchDate) score += 50;
-  if (timeline.estimatedCompletionDate) score += 50;
+  if ((timeline as any).plannedLaunchDate) score += 50;
+  if ((timeline as any).estimatedCompletionDate) score += 50;
 
   return score;
 }

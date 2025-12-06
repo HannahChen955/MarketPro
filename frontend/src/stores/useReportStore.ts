@@ -111,7 +111,7 @@ export const useReportStore = create<ReportState>()(
 
         try {
           const response = await api.get('/reports');
-          const fetchedReports = response.data.data;
+          const fetchedReports = (response.data as any).data;
 
           // 合并获取的数据和占位符，确保总是有8个
           const allReports = [...fetchedReports];
@@ -143,7 +143,7 @@ export const useReportStore = create<ReportState>()(
 
         try {
           const response = await api.post('/reports', reportData);
-          const newReport = response.data.data;
+          const newReport = (response.data as any).data;
 
           set((state) => ({
             reports: state.reports.map((report, index) =>
@@ -168,7 +168,7 @@ export const useReportStore = create<ReportState>()(
 
         try {
           const response = await api.put(`/reports/${id}`, updates);
-          const updatedReport = response.data.data;
+          const updatedReport = (response.data as any).data;
 
           set((state) => ({
             reports: state.reports.map((report) =>

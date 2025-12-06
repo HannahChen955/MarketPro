@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   description: '使用 AI 技术自动化房地产市场分析和报告生成',
   keywords: ['房地产', 'AI', '报告生成', '市场分析', '营销'],
   authors: [{ name: 'MarketPro Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: '#2563eb',
 };
 
