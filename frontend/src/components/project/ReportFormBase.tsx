@@ -41,8 +41,8 @@ interface ReportFormBaseProps {
   title: string;
   description: string;
   phaseIcon: ReactNode;
-  phaseId: string;
-  projectId: string;
+  phaseId?: string;
+  projectId?: string;
   sections: FormSection[];
   formData: ReportFormData;
   onFormChange: (data: ReportFormData) => void;
@@ -362,14 +362,16 @@ export function ReportFormBase({
       </div>
 
       {/* AI报告生成器 */}
-      <AIReportGenerator
-        projectId={projectId}
-        phaseId={phaseId}
-        formData={formData}
-        onReportGenerated={handleReportGenerated}
-        isOpen={isAIGeneratorOpen}
-        onClose={() => setIsAIGeneratorOpen(false)}
-      />
+      {projectId && phaseId && (
+        <AIReportGenerator
+          projectId={projectId}
+          phaseId={phaseId}
+          formData={formData}
+          onReportGenerated={handleReportGenerated}
+          isOpen={isAIGeneratorOpen}
+          onClose={() => setIsAIGeneratorOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -6,9 +6,11 @@ import { Eye, EyeOff, AlertCircle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { componentVariants } from '@/lib/design-system';
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   variant?: 'default' | 'error' | 'success';
   size?: 'sm' | 'md' | 'lg';
+  /** Native input size attribute is exposed separately to avoid clashing with visual size */
+  inputSize?: InputHTMLAttributes<HTMLInputElement>['size'];
   label?: string;
   error?: string;
   success?: string;
@@ -25,6 +27,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     className,
     variant = 'default',
     size = 'md',
+    inputSize,
     type = 'text',
     label,
     error,
@@ -88,6 +91,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           ref={ref}
           disabled={disabled}
+          size={inputSize}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           {...props}
